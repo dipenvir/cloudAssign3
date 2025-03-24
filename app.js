@@ -65,7 +65,10 @@ app.get("/", checkAuth, (req, res) => {
         res.redirect("/main");
         return;
     }
-    res.render("home");
+     res.render('home', {
+        isAuthenticated: req.isAuthenticated,
+        userInfo: req.session.userInfo
+    });
 });
 
 app.get("/login", (req, res) => {
