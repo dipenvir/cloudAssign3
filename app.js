@@ -1,11 +1,10 @@
-import express from "express";
-import session from "express-session";
-import https from "https";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-import { Issuer, generators } from "openid-client";
-import "dotenv/config";
+const express = require("express");
+const session = require("express-session");
+const https = require("https");
+const fs = require("fs");
+const path = require("path");
+const dotenv = require("dotenv/config");
+const { Issuer, generators } = require("openid-client");
 
 const app = express();
 const SECRET = process.env.SECRET;
@@ -20,9 +19,6 @@ if (!SECRET || !CLIENT_SECRET || !REDIRECT_URI || !LOGOUT_URI) {
     );
     process.exit(1);
 }
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const options = {
     key: fs.readFileSync(path.join(__dirname, "key.pem")),
