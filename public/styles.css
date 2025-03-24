@@ -1,0 +1,174 @@
+/* Global styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background: linear-gradient(to right, #380e65, #6a11cb, #2575fc);
+    color: white;
+    overflow: hidden;
+}
+
+.container {
+    text-align: center;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.7);
+    width: 100%;
+    max-width: 450px;
+    backdrop-filter: blur(10px);
+}
+
+header h1, header h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.welcome-message h3 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+.welcome-message pre {
+    background-color: #333;
+    padding: 15px;
+    border-radius: 5px;
+    margin: 0;
+    text-align: left;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Button styling */
+button, a.button {
+    padding: 15px;
+    background-color: #04AA6D;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 20px;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 1.1rem;
+}
+
+button:hover, a.button:hover {
+    background-color: #038c52;
+    transform: scale(1.05);
+}
+
+/* Specific page styling */
+.home-container {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 50px;
+}
+
+.help-container {
+    background: rgba(0, 0, 0, 0.75);
+    padding: 40px;
+}
+
+.main-container {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 30px;
+}
+
+/* Layout and text for Home page */
+.home-container h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.home-container p {
+    font-size: 1.2rem;
+    color: #ccc;
+}
+
+/* Layout and text for Help page */
+.help-container h1 {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.help-container p {
+    font-size: 1.2rem;
+    color: #ccc;
+}
+
+/* Layout and text for Main page */
+.main-container h1 {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.main-container p {
+    font-size: 1.2rem;
+    color: #ccc;
+}
+
+.login-prompt p {
+    font-size: 1.1rem;
+    margin-top: 10px;
+}
+
+/* Footer styles (optional) */
+footer {
+    margin-top: 30px;
+    font-size: 0.9rem;
+    color: #bbb;
+}
+
+footer a {
+    color: #04AA6D;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+/* For mobile responsiveness */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2rem;
+    }
+    
+    header h2 {
+        font-size: 1.5rem;
+    }
+
+    .container {
+        padding: 25px;
+        width: 90%;
+    }
+
+    button, a.button {
+        font-size: 1rem;
+    }
+
+    .home-container h1 {
+        font-size: 2.5rem;
+    }
+
+    .help-container h1 {
+        font-size: 2.5rem;
+    }
+
+    .main-container h1 {
+        font-size: 2.5rem;
+    }
+}
