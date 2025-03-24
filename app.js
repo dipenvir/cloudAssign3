@@ -1,30 +1,57 @@
-const express = require('express');
-const session = require('express-session');
-const { Issuer, generators } = require('openid-client');
-require("dotenv").config();
+import express from "express";
+import session from "express-session";
+import https from "https";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { Issuer, generators } from "openid-client";
+import "dotenv/config";
+
 const app = express();
-app.set('view engine', 'ejs');
-app.use(express.static('public')); // For serving static files like styles.css
-const PORT = process.env.PORT || 8000;
+const SECRET = process.env.SECRET;
+const CLIENT_SECRET = process.env.CLIENT_SECRET;
+const REDIRECT_URI = process.env.REDIRECT_URI;
+const LOGOUT_URI = process.env.LOGOUT_URI;
+const PORT = process.env.PORT || 3000;
+
+if (!SECRET || !CLIENT_SECRET || !REDIRECT_URI || !LOGOUT_URI) {
+    console.error(
+        "Missing required environment variables SECRET or CLIENT_SECRET or REDIRECT_URI or LOGOUT_URI"
+    );
+    process.exit(1);
+}
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const options = {
+    key: fs.readFileSync(path.join(__dirname, "key.pem")),
+    cert: fs.readFileSync(path.join(__dirname, "cert.pem")),
+};
+
 let client;
 // Initialize OpenID Client
 async function initializeClient() {
-    const issuer = await Issuer.discover('https://cognito-idp.us-west-2.amazonaws.com/us-west-2_GVly2zl16');
+    const issuer = await Issuer.discover(
+        "https://cognito-idp.us-west-2.amazonaws.com/us-west-2_GVly2zl16"
+    );
     client = new issuer.Client({
-        client_id: '2ii6hvd4ssgpc8eg9tjt6k2mga',
-        client_secret: '13vp5vjj1hfa9rmtk15nf89soa4o4rpv1kh53vgd2eo4lsl9djpr',
-        // redirect_uris: ['https://d84l1y8p4kdic.cloudfront.net'],
-        redirect_uris: ["http://localhost:8000/callback"],
-        response_types: ['code']
+        client_id: "2ii6hvd4ssgpc8eg9tjt6k2mga",
+        client_secret: CLIENT_SECRET,
+        redirect_uris: [REDIRECT_URI],
+        response_types: ["code"],
     });
-};
+}
 initializeClient().catch(console.error);
 
-app.use(session({
-    secret: process.env.SECRET,
-    resave: false,
-    saveUninitialized: false
-}));
+app.use(
+    session({
+        secret: SECRET,
+        resave: false,
+        saveUninitialized: false,
+    })
+);
+app.use(express.static("public"));
 
 const checkAuth = (req, res, next) => {
     if (!req.session.userInfo) {
@@ -35,15 +62,17 @@ const checkAuth = (req, res, next) => {
     next();
 };
 
-app.get('/', checkAuth, (req, res) => {
-    console.log('Session Info:', req.session.userInfo);  // Debugging line
-    res.render('home', {
-        isAuthenticated: req.isAuthenticated,
-        userInfo: req.session.userInfo
-    });
+app.set("view engine", "ejs");
+
+app.get("/", checkAuth, (req, res) => {
+    if (req.isAuthenticated) {
+        res.redirect("/main");
+        return;
+    }
+    res.render("home");
 });
 
-app.get('/login', (req, res) => {
+app.get("/login", (req, res) => {
     const nonce = generators.nonce();
     const state = generators.state();
 
@@ -51,7 +80,7 @@ app.get('/login', (req, res) => {
     req.session.state = state;
 
     const authUrl = client.authorizationUrl({
-        scope: 'phone openid email',
+        scope: "phone openid email",
         state: state,
         nonce: nonce,
     });
@@ -59,61 +88,51 @@ app.get('/login', (req, res) => {
     res.redirect(authUrl);
 });
 
-app.get('/main', checkAuth, (req, res) => {
-    console.log('Session Info:', req.session.userInfo);  // Debugging line
-    if (req.isAuthenticated) {
-        res.render('main', {
-            userInfo: req.session.userInfo
-        });
-    } else {
-        res.redirect('/');
+app.get("/main", checkAuth, (req, res) => {
+    if (!req.isAuthenticated) {
+        res.redirect("/");
+        return;
     }
-});
-app.get('/help', (req, res) => {
-    res.render('help');
-});
-// Helper function to get the path from the URL. Example: "http://localhost/hello" returns "/hello"
-function getPathFromURL(urlString) {
-    try {
-        const url = new URL(urlString);
-        return url.pathname;
-    } catch (error) {
-        console.error('Invalid URL:', error);
-        return null;
-    }
-}
 
-app.get('/callback', async (req, res) => {
+    res.render("main", {
+        userInfo: req.session.userInfo,
+    });
+});
+
+app.get("/help", (req, res) => {
+    res.render("help");
+});
+
+app.get("/callback", async (req, res) => {
     try {
         const params = client.callbackParams(req);
         const tokenSet = await client.callback(
-            'http://localhost:8000/callback',
+            REDIRECT_URI,
             params,
             {
                 nonce: req.session.nonce,
-                state: req.session.state
+                state: req.session.state,
             }
         );
 
         const userInfo = await client.userinfo(tokenSet.access_token);
         req.session.userInfo = userInfo;
 
-        // Redirect to the main page after successful login
-        res.redirect('/main');
+        console.log("User info retrieved and stored in session:", userInfo);
+        res.redirect("/");
     } catch (err) {
-        console.error('Callback error:', err);
-        res.redirect('/');
+        console.error("Callback error:", err);
+        res.redirect("/");
     }
 });
 
 // Logout route
-// Logout route
-app.get('/logout', (req, res) => {
+app.get("/logout", (req, res) => {
     req.session.destroy();
-    const logoutUrl = `https://us-west-2gvly2zl16.auth.us-west-2.amazoncognito.com/logout?client_id=2ii6hvd4ssgpc8eg9tjt6k2mga&logout_uri=http://localhost:8000`;
+    const logoutUrl = `https://us-west-2gvly2zl16.auth.us-west-2.amazoncognito.com/logout?client_id=2ii6hvd4ssgpc8eg9tjt6k2mga&logout_uri=${LOGOUT_URI}`;
     res.redirect(logoutUrl);
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running at port ${PORT}`);
+https.createServer(options, app).listen(PORT, () => {
+    console.log(`Server running at https://localhost:${PORT}`);
 });
